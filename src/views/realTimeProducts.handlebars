@@ -1,0 +1,41 @@
+<form>
+  <label for="product-name">Product Name:</label>
+  <input type="text" id="product-name" name="product-name">
+  <button type="submit" id="create-product">Create Product</button>
+</form>
+
+<ul>
+  {{#each products}}
+    <li>{{this.name}} <button class="delete-product" data-id="{{this.id}}">Delete</button></li>
+  {{/each}}
+</ul>
+
+<script>
+  // listen for the form submit event
+  document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const productName = document.querySelector('#product-name').value;
+
+    // emit a "createProduct" event with the product name
+    socket.emit('createProduct', { name: productName });
+  });
+
+  // listen for the "deleteProduct" button click event
+  document.querySelectorAll('.delete-product').forEach(function(button) {
+    button.addEventListener('click', function() {
+      const productId = button.getAttribute('data-id');
+
+      // emit a "deleteProduct" event with the product id
+      socket.emit('deleteProduct', productId);
+    });
+  });
+
+  // listen for the "productsUpdated" event from the server
+  socket.on('productsUpdated', function(updatedProducts) {
+    // update the products array and re-render the view
+    products = updatedProducts;
+    // update the products.json file
+    fs.writeFileSync(path.join(__dirname, 'src/routes/products.json'), JSON.stringify(products));
+
+  });
+</script>
